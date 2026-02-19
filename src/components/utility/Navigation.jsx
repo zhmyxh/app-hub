@@ -23,9 +23,9 @@ function Navigation() {
                 <IconRef className='icon-default' width={22} height={22} />
                 <span className='default-text' style={{ fontWeight: currentPage === 'referral-page' ? 600 : 'normal' }}>{t('nav.referrals')}</span>
             </div>
-            <div className={`navigation-button ${currentPage === 'play-page' ? 'selected' : ''}`} onClick={() => goToPage('play-page')}>
+            <div className={`navigation-button ${currentPage === 'games-page' ? 'selected' : ''}`} onClick={() => goToPage('games-page')}>
                 <IconPlay className='icon-default' width={22} height={22} />
-                <span className='default-text' style={{ fontWeight: currentPage === 'play-page' ? 600 : 'normal' }}>{t('nav.play')}</span>
+                <span className='default-text' style={{ fontWeight: currentPage === 'games-page' ? 600 : 'normal' }}>{t('nav.games')}</span>
             </div>
             <div className={`navigation-button ${currentPage === 'profile-page' ? 'selected' : ''}`} onClick={() => goToPage('profile-page')}>
                 <IconProfile className='icon-default' width={22} height={22} />

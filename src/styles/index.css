@@ -297,7 +297,7 @@ img {
     display: flex;
     flex-direction: column;
     min-height: 230px;
-    max-height: 590px;
+    max-height: 460px;
     overflow-y: auto;
     box-sizing: border-box;
 }
@@ -313,6 +313,7 @@ img {
     border: 1px solid var(--default-border);
     background-color: var(--default-back);
     color: var(--default-text);
+    font-family: Inter;
     font-size: 14px;
     cursor: pointer;
     appearance: none;
