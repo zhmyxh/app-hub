@@ -24,17 +24,15 @@
     
     --default-back: rgb(234, 234, 234);
     --default-back-transparent: rgba(234, 234, 234, 0.8);
+    --invert-back: rgb(107, 107, 107);
     
     --default-border: rgba(0, 0, 0, 0.068);
 
     --default-icon: rgb(99, 99, 99);
     --invert-icon: rgb(255, 255, 255);
 
-    --green: rgb(0, 120, 0);
-    --green-back: rgba(0, 120, 0, 0.45);
-    --green-border: rgba(0, 120, 0, 0.28);
+    --green: rgb(0, 152, 0);
     --blue: rgb(39, 135, 203);
-    --blue-back: rgba(39, 135, 203, 0.463);
 }
 
 :root[data-theme="dark"] {
@@ -49,6 +47,7 @@
 
     --default-back: rgb(27, 27, 27);
     --default-back-transparent: rgba(24, 24, 24, 0.8);
+    --invert-back: rgb(149, 149, 149);
     
     --default-border: rgba(255, 255, 255, 0.08);
 
@@ -56,9 +55,7 @@
     --invert-icon: rgb(255, 255, 255);
 
     --green: rgb(0, 135, 0);
-    --green-back: rgba(0, 135, 0, 0.163);
     --blue: rgb(39, 135, 203);
-    --blue-back: rgba(39, 135, 203, 0.163);
 }
 
 /* ------ body ------ */
@@ -71,8 +68,12 @@ body {
     user-select: none;
 }
 
-div, span, .navigation-button {
+div, .navigation-button {
     transition: 0.3s;
+}
+
+span {
+    transition: 0.15s;
 }
 
 * {
@@ -200,19 +201,23 @@ button {
     transition: 0.1s;
 }
 
-button:active {
+button:enabled:active {
     opacity: 0.8;
     transform: scale(0.95);
 }
 
+button:disabled {
+    opacity: 0.6;
+}
+
 .b-g {
     color: white;
-    background-color: rgb(0, 135, 0);
+    background-color: var(--green);
 }
 
 .b-b {
     color: white;
-    background-color: rgb(39, 135, 203);
+    background-color: var(--blue);
 }
 
 .text-white {
@@ -282,7 +287,7 @@ img {
     gap: 7px;
 }
 
-#dark {
+#overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -306,7 +311,12 @@ img {
     backdrop-filter: blur(10px);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.364);
     overflow: hidden;
-    transition: 0.3s;
+    transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+#modal.modal-open {
+  transform: translateY(0);
 }
 
 #modal-header {
@@ -551,7 +561,7 @@ img {
     display: flex;
     bottom: 0;
     padding: 10px;
-    gap: 5px;
+    gap: 10px;
     z-index: 3;
 }
 

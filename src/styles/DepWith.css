@@ -5,54 +5,63 @@
     gap: 25px;
 }
 
-#deposit-list {
+#deposit-list,
+#withdraw-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.deposit-pack {
+.deposit-pack,
+.withdraw-pack {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px;
-    padding-left: 18px;
+    padding-left: 55px;
     height: 40px;
     gap: 12px;
     border-radius: 15px;
     background-color: var(--hover-back);
+    border: 2px solid;
+    border-color: rgba(255, 255, 255, 0);
     cursor: pointer;
     transition: 0.1s;
 }
 
-.pack-selected {
-    background-color: var(--active-back);
-    transform: translateY(-5px);
-}
-
-.deposit-ad {
+.deposit-pack::after,
+.withdraw-pack::after {
+    content: '';
     position: absolute;
-    top: -29px;
-    left: 50%;
-    transform: translate(-50%);
-    width: 80%;
-    background-color: var(--green);
-    padding: 5px 10px;
-    border-radius: 10px 10px 0 0;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    border-radius: 30px;
+    border: 2px solid var(--invert-back);
+    width: 18px;
+    height: 18px;
 }
 
-#deposit-amount {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+.pack-selected {
+    border-color: var(--invert-back);
 }
 
-.deposit-balance {
+.pack-selected::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    transform: translateY(-50%);
+    border-radius: 30px;
+    background-color: var(--invert-back);
+    width: 12px;
+    height: 12px;
+}
+
+#withdraw-info,
+#deposit-info {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 5px;
-    padding: 18px;
-    border-radius: 15px;
-    background-color: var(--hover-back);
 }

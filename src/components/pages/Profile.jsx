@@ -25,7 +25,7 @@ function ProfilePage() {
                     {!loaded && <div className="loader"></div>}
                     <img
                         id='profile-image'
-                        src={user.image}
+                        src={user.photo_url}
                         onLoad={() => setLoaded(true)}
                         onError={() => setLoaded(false)}
                         style={{
@@ -35,22 +35,25 @@ function ProfilePage() {
                         }} />
                 </div>
                 <div id="profile-name">
+                    <span className="secondary-text">ID: {user.id}</span>
                     <span className="default-text" style={{ fontWeight: 700 }}>{user.username}</span>
-                    <Score value={balance} />
                 </div>
             </div>
             <div className="profile-action-box box">
                 <span className='header-text'>{t('header.balance')}</span>
                 <span className='secondary-text'>{t('definition.balance')}</span>
                 <div className='line'></div>
-                <button className="button-main b-g" onClick={() => toggleModal('deposit')}>
-                    <IconDeposit className='icon-invert' width={20} height={20} />
-                    <span className="white-text">{t('button.deposit')}</span>
-                </button>
-                <button className="button-main b-b" onClick={() => toggleModal('withdraw')}>
-                    <IconWithdraw className='icon-invert' width={20} height={20} />
-                    <span className="white-text">{t('button.withdraw')}</span>
-                </button>
+                <div id='profile-depwith'>
+                    <button className="button-main b-g" onClick={() => toggleModal('deposit')}>
+                        <IconDeposit className='icon-invert' width={20} height={20} />
+                        <span className="white-text">{t('button.deposit')}</span>
+                    </button>
+                    <button className="button-main b-b" onClick={() => toggleModal('withdraw')}>
+                        <IconWithdraw className='icon-invert' width={20} height={20} />
+                        <span className="white-text">{t('button.withdraw')}</span>
+                    </button>
+                </div>
+
             </div>
             <div className="profile-action-box box">
                 <span className='header-text'>{t('header.info')}</span>

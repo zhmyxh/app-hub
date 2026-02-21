@@ -7,7 +7,6 @@
 #profile-container {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 15px;
 }
 
@@ -15,8 +14,8 @@
     position: relative;
     background: var(--hover-back);
     border-radius: 90px;
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -43,4 +42,10 @@
 .profile-action-box {
     display: flex;
     flex-direction: column;
+}
+
+#profile-depwith {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
 }

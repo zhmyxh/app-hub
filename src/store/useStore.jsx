@@ -59,7 +59,7 @@ export const useSettingsStore = create((set, get) => ({
     },
 
     // page routing
-    currentPage: 'profile-page',
+    currentPage: 'events-page',
     setPage: (page) => set({
         currentPage: page
     }),
@@ -73,7 +73,7 @@ export const useSettingsStore = create((set, get) => ({
     })),
 
     // language
-    langList: ['en', 'ru', 'sp', 'cn'],
+    langList: ['en', 'ru'],
     lang: getInitialLang(),
     setLang: (lang) => {
         localStorage.setItem('lang', lang)
@@ -118,6 +118,18 @@ export const useContentStore = create((set, get) => ({
         { amount: 75, type: 'deposit' },
         { amount: 100, type: 'deposit' }
     ],
+    depositFee: 0,
+    depositMin: 25,
+
+    //withdraw
+    withdrawPack: [
+        { amount: 50, type: 'withdraw' },
+        { amount: 75, type: 'withdraw' },
+        { amount: 100, type: 'withdraw' },
+        { amount: 125, type: 'withdraw' }
+    ],
+    withdrawFee: 0,
+    withdrawMin: 50,
 
     giftsDeposit: [
         { name: 'diamond-gift', icon: 'diamond-gift', price: 85 },

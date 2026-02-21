@@ -13,10 +13,9 @@ function Modal({ header, children }) {
     const maxSize = 650
 
     useEffect(() => {
-        setSize(maxSize)
-        setTimeout(() => {
+        requestAnimationFrame(() => {
             setOpened(true)
-        }, 300)
+        })
     }, [])
 
     const handleModal = () => {
@@ -28,14 +27,16 @@ function Modal({ header, children }) {
     }
 
     return (
-        <div id="modal" style={{ height: size }}>
-            <div id="modal-header">
-                <span className="default-text" style={{ fontWeight: 'bold', fontSize: 20 }}>{header}</span>
-                <button className="button-i" onClick={handleModal}>
-                    <IconClose className='icon-default' width={20} height={20} />
-                </button>
+        <div id="overlay" onClick={handleModal}>
+            <div id="modal" className={opened ? "modal-open" : ""} onClick={(e) => e.stopPropagation()}>
+                <div id="modal-header">
+                    <span className="default-text" style={{ fontWeight: 'bold', fontSize: 20 }}>{header}</span>
+                    <button className="button-i" onClick={handleModal}>
+                        <IconClose className='icon-default' width={20} height={20} />
+                    </button>
+                </div>
+                <div id="modal-content" style={{ overflowY: opened ? 'auto' : 'hidden' }} ona>{children ? children : <NotFound />}</div>
             </div>
-            <div id="modal-content" style={{ overflowY: opened ? 'auto' : 'hidden' }}>{children ? children : <NotFound />}</div>
         </div>
     )
 }
