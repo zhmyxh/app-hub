@@ -17,7 +17,7 @@ function Panel() {
     const { t } = useTranslation()
 
     const queryClient = useQueryClient()
-    const wallet = queryClient.getQueryData(['wallet'])
+    const wallet = queryClient.getQueryData(['balance'])
 
     const handleTheme = () => {
         changeTheme(theme === 'light' ? 'dark' : 'light')

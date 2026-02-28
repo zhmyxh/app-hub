@@ -61,7 +61,14 @@
 
 #withdraw-info,
 #deposit-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.withdraw-info-box,
+.deposit-info-box {
     display: flex;
-    align-items: center;
-    gap: 5px;
+    flex-direction: column;
+    gap: 10px;
 }

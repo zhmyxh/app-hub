@@ -95,7 +95,7 @@ div, .navigation-button {
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: 450px;
+    max-width: 420px;
     max-height: 750px;
     height: 100%;
     background-color: var(--app-color);
@@ -180,6 +180,13 @@ p {
     color: var(--default-text);
 }
 
+.button-alter {
+    height: 30px;
+    background-color: var(--default-button);
+    font-size: 14px;
+    color: var(--secondary-text);
+}
+
 .button-secondary {
     background: none;
     font-size: 14px;
@@ -253,6 +260,26 @@ button:disabled {
 
 /* ------ utility ------ */
 
+input {
+    background: none;
+    border: none;
+    outline: none;
+    width: 100%;
+    font-family: Geologica;
+    color: var(--default-text);
+    box-sizing: border-box;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 img {
     pointer-events: none;
     user-select: none;
@@ -264,6 +291,12 @@ img {
     width: 100%;
     box-sizing: border-box;
 } */
+
+.empty {
+    height: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
 
 .header {
     display: flex;
@@ -292,14 +325,19 @@ img {
     justify-content: center;
     align-items: center;
     width: fit-content;
-    height: 30px;
     gap: 7px;
+    height: 28px;
 }
 
 .score-filled {
+    height: 30px;
     padding-inline: 10px;
     border-radius: 20px;
     background-color: var(--hover-back);
+}
+
+.score span {
+    line-height: 1;
 }
 
 #overlay {
@@ -321,13 +359,14 @@ img {
     display: flex;
     flex-direction: column;
     width: 100%;
+    max-height: 700px;
     border-radius: 15px 15px 0 0;
     background-color: var(--default-back);
     backdrop-filter: blur(10px);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.364);
     overflow: hidden;
     transform: translateY(100%);
-  transition: transform 0.3s ease;
+    transition: transform 0.3s ease;
 }
 
 #modal.modal-open {
@@ -501,6 +540,38 @@ img {
 .icon-invert circle,
 .icon-invert ellipse {
   fill: var(--invert-icon);
+}
+
+table {
+    font-family: Geologica;
+    color: var(--default-text);
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 10px;
+    background-color: var(--hover-back);
+    border-collapse: collapse;
+    overflow: hidden;
+}
+
+td, th {
+    text-align: center;
+    padding: 10px;
+}
+
+.cell-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+td {
+    font-size: 14px;
+}
+
+tr:nth-child(even) {
+    background-color: var(--active-back);
 }
 
 /* ------ scroll ------ */

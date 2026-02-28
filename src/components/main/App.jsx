@@ -17,6 +17,7 @@ const ProfilePage = lazy(() => import("../pages/Profile"))
 const Deposit = lazy(() => import("../modal/Deposit"))
 const Withdraw = lazy(() => import("../modal/Withdraw"))
 const Rules = lazy(() => import("../modal/Rules"))
+const Wager = lazy(() => import("../modal/Wager"))
 
 import Settings from '../modal/Settings'
 
@@ -31,9 +32,13 @@ const queryClient = new QueryClient()
 
 function App() {
     const { theme, changeTheme, currentPage, setPage, modalStatus, modalType, lang } = useSettingsStore()
-    const { loginUser, user, setBalance, balance, undefinedUser } = useUserStore()
+    const { loginUser, user, setBalance, undefinedUser } = useUserStore()
     const { server } = useContentStore()
     const { t } = useTranslation()
+
+    const fetchWallet = async () => {
+        return await httpGet(server + 'wallet/balance/detailed')
+    }
 
     const fetchBalance = async () => {
         return await httpGet(server + 'wallet/balance')
@@ -43,9 +48,16 @@ function App() {
         return await httpPost(server + 'users')
     }
 
+    const { data: balance } = useQuery({
+        queryKey: ['balance'],
+        queryFn: fetchBalance,
+        staleTime: TTL,
+        cacheTime: TTL,
+    })
+
     const { data: wallet } = useQuery({
         queryKey: ['wallet'],
-        queryFn: fetchBalance,
+        queryFn: fetchWallet,
         staleTime: TTL,
         cacheTime: TTL,
     })
@@ -80,6 +92,7 @@ function App() {
                         {modalType === 'deposit' && <Deposit />}
                         {modalType === 'withdraw' && <Withdraw />}
                         {modalType === 'rules' && <Rules />}
+                        {modalType === 'wager' && <Wager />}
                     </Suspense>
                     {modalType === 'settings' && <Settings />}
                 </Modal>

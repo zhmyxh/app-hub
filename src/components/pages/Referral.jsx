@@ -8,7 +8,7 @@ import { useContentStore, useUserStore } from '../../store/useStore'
 import { useEffect, useState } from 'react'
 import Score from '../utility/Score'
 import { useTranslation } from 'react-i18next'
-import { httpGet, httpPost, TTL } from '../../api'
+import { httpGet, httpPost, tg, TTL } from '../../api'
 import PageLoader from '../utility/PageLoader'
 
 function ReferralPage() {
@@ -56,25 +56,14 @@ function ReferralPage() {
     }, [referral])
 
     const handleShareLink = () => {
-        function inviteFriends(message = referralLink) {
-            const tg = window.Telegram?.WebApp
-            if (!tg || typeof tg.shareData !== 'function') {
-                console.warn('Telegram WebApp shareData недоступен')
-                return
+        if (referralLink) {
+            const messageText = t('referral.shareMessage')
+            const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(messageText)}`
+
+            if (tg.openTelegramLink) {
+                tg.openTelegramLink(shareUrl)
             }
-
-            tg.shareData({
-                message: message
-            })
-                .then(() => {
-                    console.log('Окно выбора чата открыто. Пользователь может отправить сообщение сам.')
-                })
-                .catch((err) => {
-                    console.error('Не удалось открыть окно выбора чата:', err)
-                })
         }
-
-        inviteFriends()
     }
 
     const handleCopyLink = async () => {

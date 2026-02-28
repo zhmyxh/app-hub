@@ -3,14 +3,13 @@ import '../../styles/Modal.css'
 import IconClose from '../../assets/icons/icon-close.svg?react'
 import { useSettingsStore } from '../../store/useStore'
 import NotFound from './NotFound'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function Modal({ header, children }) {
     const { toggleModal } = useSettingsStore()
-    const [size, setSize] = useState(0)
     const [opened, setOpened] = useState(false)
-
-    const maxSize = 650
+    const [height, setHeight] = useState(0)
+    const contentRef = useRef(null)
 
     useEffect(() => {
         requestAnimationFrame(() => {
@@ -18,9 +17,23 @@ function Modal({ header, children }) {
         })
     }, [])
 
+    useEffect(() => {
+        if (!contentRef.current) return
+
+        const element = contentRef.current
+
+        const observer = new ResizeObserver(() => {
+            setHeight(element.scrollHeight + 25)
+        })
+
+        observer.observe(element)
+
+        setHeight(element.scrollHeight)
+        return () => observer.disconnect()
+    }, [])
+
     const handleModal = () => {
         setOpened(false)
-        setSize(0)
         setTimeout(() => {
             toggleModal()
         }, 300)
@@ -35,7 +48,11 @@ function Modal({ header, children }) {
                         <IconClose className='icon-default' width={20} height={20} />
                     </button>
                 </div>
-                <div id="modal-content" style={{ overflowY: opened ? 'auto' : 'hidden' }} ona>{children ? children : <NotFound />}</div>
+                <div id="modal-content" style={{ overflowY: opened ? 'auto' : 'hidden', height: height, transition: "height 0.3s ease" }}>
+                    <div ref={contentRef} style={{ boxSizing: 'border-box' }}>
+                        {children ? children : <NotFound />}
+                    </div>
+                </div>
             </div>
         </div>
     )

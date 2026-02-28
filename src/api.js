@@ -94,3 +94,18 @@ export async function httpPost(url, data = {}, options = {}) {
         body: JSON.stringify(data),
     })
 }
+
+export function utcFormat(utcDate) {
+    const date = new Date(utcDate)
+
+    if (isNaN(date.getTime())) {
+        throw new Error('Invalid date')
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        timeZone: 'UTC',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    }).format(date)
+}

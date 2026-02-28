@@ -27,11 +27,9 @@ function Deposit() {
         <div id="deposit">
             <span className='secondary-text'>{t('definition.deposit')}</span>
             <div id='deposit-info'>
-                <span className='secondary-text'>Fee: {depositFee}%</span>
-                <span className='secondary-text'>·</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span className='secondary-text'>Minimum:</span>
-                    <Score value={depositMin} icon={<IconStar width={18} height={18} />} filled={true} />
+                <div className='deposit-info-box'>
+                    <span className='secondary-text'>Fee</span>
+                    <Score value={depositFee + '%'} />
                 </div>
             </div>
             <div id='deposit-list'>

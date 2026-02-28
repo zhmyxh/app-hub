@@ -66,10 +66,12 @@ export const useSettingsStore = create((set, get) => ({
 
     //modal
     modalStatus: false,
+    modalIndex: null,
     modalType: '',
-    toggleModal: (type) => set(state => ({
+    toggleModal: (type, index) => set(state => ({
         modalStatus: !state.modalStatus,
-        modalType: type || ''
+        modalType: type || '',
+        modalIndex: index || null
     })),
 
     // language
@@ -85,12 +87,6 @@ export const useSettingsStore = create((set, get) => ({
 }))
 
 export const useUserStore = create((set, get) => ({
-    // balance
-    balance: null,
-    setBalance: (value) => set({
-        balance: value
-    }),
-
     // user
     user: {},
     undefinedUser: {
@@ -98,7 +94,7 @@ export const useUserStore = create((set, get) => ({
         is_bot: false,
         first_name: "undefined",
         last_name: "undefined",
-        username: "undefined",
+        username: "User",
         language_code: "ru",
         is_premium: true,
         allows_write_to_pm: true,
@@ -133,15 +129,18 @@ export const useContentStore = create((set, get) => ({
             category: 'MOMENTUM',
             image_payload: 'https://i.ytimg.com/vi/TYnRwTdfet0/maxresdefault.jpg',
             status: 'OPEN',
-            bet_close_date: '28.02.2026',
-            closes_at: '28.02.2026',
+            bet_close_date: '2026-06-30T00:00:00Z',
+            closes_at: '2026-06-30T00:00:00Z',
             options: [
-                { name: 'yes', image_payload: '', option_id: 1, event_id: 5234, option_pool: 245 },
-                { name: 'no', image_payload: '', option_id: 2, event_id: 5234, option_pool: 645 }
+                { name: 'yes', image_payload: '', option_id: 1, event_id: 5234, option_pool: 245, percent: 28, user_wager: 0 },
+                { name: 'no', image_payload: '', option_id: 2, event_id: 5234, option_pool: 645, percent: 72, user_wager: 15, }
             ],
             event_id: 5234,
             winning_option_id: 2,
-            total_pool: 890
+            total_pool: 890,
+            total_wagers: 18,
+            user_wager: 0,
+            is_user_participating: true
         }
     ],
 
@@ -164,38 +163,6 @@ export const useContentStore = create((set, get) => ({
     ],
     withdrawFee: 0,
     withdrawMin: 50,
-
-    giftsDeposit: [
-        { name: 'diamond-gift', icon: 'diamond-gift', price: 85 },
-        { name: 'trophy-gift', icon: 'trophy-gift', price: 85 },
-        { name: 'ring-gift', icon: 'ring-gift', price: 85 },
-
-        { name: 'flowers-gift', icon: 'flowers-gift', price: 43 },
-        { name: 'cake-gift', icon: 'cake-gift', price: 43 },
-        { name: 'rocket-gift', icon: 'rocket-gift', price: 43 },
-
-        { name: 'single-flower-gift', icon: 'single-flower-gift', price: 21 },
-        { name: 'present-gift', icon: 'present-gift', price: 21 },
-
-        { name: 'heart-gift', icon: 'heart-gift', price: 13 },
-        { name: 'teddy-gift', icon: 'teddy-gift', price: 13 }
-    ],
-
-    giftsWithdraw: [
-        { name: 'diamond-gift', icon: 'diamond-gift', price: 100 },
-        { name: 'trophy-gift', icon: 'trophy-gift', price: 100 },
-        { name: 'ring-gift', icon: 'ring-gift', price: 100 },
-
-        { name: 'flowers-gift', icon: 'flowers-gift', price: 50 },
-        { name: 'cake-gift', icon: 'cake-gift', price: 50 },
-        { name: 'rocket-gift', icon: 'rocket-gift', price: 50 },
-
-        { name: 'single-flower-gift', icon: 'single-flower-gift', price: 25 },
-        { name: 'present-gift', icon: 'present-gift', price: 25 },
-
-        { name: 'heart-gift', icon: 'heart-gift', price: 15 },
-        { name: 'teddy-gift', icon: 'teddy-gift', price: 15 }
-    ],
 
     // api
     server: 'https://multi-game-hub.vercel.app/api/',
