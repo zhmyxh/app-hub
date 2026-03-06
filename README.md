@@ -15,7 +15,7 @@ Git project of Telegram Mini-App "StarsKick"
 ### 1. Clone repository
 
 ``` bash
-git clone https://github.com/username/project-name.git
+git clone https://github.com/zhmyxh/app-hub.git
 cd project-name
 ```
 
