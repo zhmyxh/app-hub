@@ -95,6 +95,9 @@ export async function httpPost(url, data = {}, options = {}) {
     })
 }
 
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { t } from 'i18next'
+
 export function utcFormat(utcDate) {
     if (!utcDate) return ''
 
@@ -106,10 +109,52 @@ export function utcFormat(utcDate) {
         return 'Invalid Date'
     }
 
-    return new Intl.DateTimeFormat('en-US', {
-        timeZone: 'UTC',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    }).format(date)
+    const day = date.getUTCDate()
+    const year = date.getUTCFullYear()
+    const monthIndex = date.getUTCMonth()
+
+    const monthKeys = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+    const monthName = t(`month.${monthKeys[monthIndex]}`)
+
+    return `${monthName} ${day}, ${year}`
+}
+
+export function getTimeLeft(dateString) {
+    const target = new Date(dateString).getTime()
+    const now = Date.now()
+
+    let diff = target - now
+
+    if (diff <= 0) {
+        return `0 ${t('warning.minutesleft')}`
+    }
+
+    const minute = 60 * 1000
+    const hour = 60 * minute
+    const day = 24 * hour
+
+    const days = Math.floor(diff / day)
+    const hours = Math.floor(diff / hour)
+    const minutes = Math.floor(diff / minute)
+
+    if (days > 0) {
+        return `${days} ${t('warning.daysleft')}`
+    }
+
+    if (hours > 0) {
+        return `${hours} ${t('warning.hoursleft')}`
+    }
+
+    if (minutes > 0) {
+        return `${minutes} ${t('warning.minutesleft')}`
+    }
+
+    return `1 ${t('warning.minutesleft')}`
+}
+
+export const useEventsFromCache = (key) => {
+    return useQuery({
+        queryKey: key,
+        enabled: false,
+    }).data
 }

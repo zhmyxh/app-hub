@@ -2,19 +2,23 @@ import './_events.styles.css'
 
 import { useTranslation } from 'react-i18next'
 import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useContentStore, useSettingsStore } from '@/store/useStore'
 
 import IconUsers from '@/assets/icons/icon-users.svg?react'
 import IconAlterStar from '@/assets/icons/icon-alter-star.svg?react'
 import IconCalendar from '@/assets/icons/icon-calendar.svg?react'
+import IconLock from '@/assets/icons/icon-lock.svg?react'
 
 import Score from '@/components/utility/Score'
 import SmartImage from '@/components/utility/SmartImage'
 import NotFound from "@/components/utility/NotFound"
 
 import { httpGet, TTL, utcFormat } from '@/api'
+import { Loader } from '../../utility/Loader/LoaderComponent'
+import { useEventsStore } from '../../../store/useStore'
+import { useEventsFromCache } from '../../../api'
 
 function Event({ event }) {
     const { toggleModal } = useSettingsStore()
@@ -52,24 +56,52 @@ function Event({ event }) {
             <div id='event-pool'>
                 <Score value={event.total_pool} icon={<IconAlterStar className='icon-default' width={16} height={16} />} filled={true} size={14} />
                 <Score value={event.total_participants} icon={<IconUsers className='icon-default' width={16} height={16} />} filled={true} size={14} />
+                {event.status !== 'OPEN' && <Score value={t('header.closed')} icon={<IconLock className={'icon-default'} width={16} height={16} />} filled={true} size={14} />}
             </div>
         </div>
     )
+}
+
+const useLoadAllEvents = (lang, server) => {
+    return useQueries({
+        queries: [
+            {
+                queryKey: ['events', 'active', lang],
+                queryFn: () => httpGet(`${server}market-wagers/events/active?app_lang=${lang}`),
+                staleTime: TTL,
+            },
+            {
+                queryKey: ['events', 'resolved', lang],
+                queryFn: () => httpGet(`${server}market-wagers/events/resolved?app_lang=${lang}`),
+                staleTime: TTL,
+            },
+        ],
+        combine: (results) => {
+            const active = results[0].data?.events || []
+            const resolved = results[1].data?.events || []
+            return {
+                allEvents: [...active, ...resolved],
+                isLoading: results.some(r => r.isLoading),
+                isSuccess: results.every(r => r.isSuccess),
+            }
+        },
+    })
 }
 
 export default function EventsPage() {
     const { t } = useTranslation()
     const { server } = useContentStore()
     const [filter, setFilter] = useState('active')
+    const { lang } = useSettingsStore()
+    const { setEvents, active, resolved, activeCount, resolvedCount } = useEventsStore()
 
-    const { data, isLoading } = useQuery({
-        queryKey: ['events', filter],
-        queryFn: () => httpGet(server + `market-wagers/events/${filter}`),
-        staleTime: TTL,
-        cacheTime: TTL
-    })
+    const { allEvents, isLoading, isSuccess } = useLoadAllEvents(lang, server)
 
-    const events = data?.events || []
+    useEffect(() => {
+        if (isSuccess && allEvents.length > 0) {
+            setEvents(allEvents)
+        }
+    }, [isSuccess, allEvents, setEvents])
 
     return (
         <div id='events' className='app-page'>
@@ -77,20 +109,25 @@ export default function EventsPage() {
                 <button className='button-alter'
                     style={{ opacity: filter === 'active' ? 1 : 0.6 }}
                     onClick={() => setFilter('active')}>
-                    <span className='secondary-text'>{t('filter.active')}</span>
+                    <span className='secondary-text'>{t('filter.active')} ({activeCount})</span>
                 </button>
                 <button className='button-alter'
                     style={{ opacity: filter === 'resolved' ? 1 : 0.6 }}
                     onClick={() => setFilter('resolved')}>
-                    <span className='secondary-text'>{t('filter.resolved')}</span>
+                    <span className='secondary-text'>{t('filter.resolved')} ({resolvedCount})</span>
                 </button>
             </div>
             <div id='events-list'>
                 {
                     isLoading
-                        ? <div className='loader' />
-                        : events.length
-                            ? events.map((event, i) => <Event event={event} key={i} />)
+                        ? <Loader text={t('loader.events')} />
+                        : allEvents?.length
+                            ? (<>
+                                {filter === 'active' && active.map((event, i) => <Event event={event} key={i} />)}
+                                {filter === 'resolved' && resolved.map((event, i) => <Event event={event} key={i} />)}
+                            </>
+
+                            )
                             : <NotFound />
                 }
             </div>

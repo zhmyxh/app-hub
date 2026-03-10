@@ -10,6 +10,13 @@ const getInitialLang = () => {
     return localStorage.getItem('lang') || 'en'
 }
 
+const getInitialWarn = () => {
+    if (typeof window === 'undefined') return false
+
+    const stored = localStorage.getItem('wagerWarning')
+    return stored !== 'hidden'
+}
+
 export const usePlayStore = create((set, get) => ({
     gameStatus: 'pre-start',
     setGameStatus: (value) => set({ gameStatus: value }),
@@ -114,41 +121,15 @@ export const useUserStore = create((set, get) => ({
             referralUpdatedAt: Date.now(),
         }),
 
-    wagerWarning: true,
-    cancelWagerWarning: () => set({
-        wagerWarning: false
-    })
+    // wager warning
+    wagerWarning: getInitialWarn(),
+    cancelWagerWarning: () => {
+        localStorage.setItem('wagerWarning', 'hidden')
+        set({ wagerWarning: false })
+    }
 }))
 
 export const useContentStore = create((set, get) => ({
-    // activities
-    activities: [
-        { name: 'blackjack', icon: 'activity-blackjack', link: 'play-page' },
-        { name: 'events', icon: 'activity-events', link: 'events-page' }
-    ],
-
-    // events
-    events: [
-        {
-            question: 'Выйдет ли новый лимитированный подарок?',
-            category: 'MOMENTUM',
-            image_payload: 'https://i.ytimg.com/vi/TYnRwTdfet0/maxresdefault.jpg',
-            status: 'OPEN',
-            bet_close_date: '2026-06-30T00:00:00Z',
-            closes_at: '2026-06-30T00:00:00Z',
-            options: [
-                { name: 'yes', image_payload: '', option_id: 1, event_id: 5234, option_pool: 245, percent: 28, user_wager: 0 },
-                { name: 'no', image_payload: '', option_id: 2, event_id: 5234, option_pool: 645, percent: 72, user_wager: 15, }
-            ],
-            event_id: 5234,
-            winning_option_id: 2,
-            total_pool: 890,
-            total_wagers: 18,
-            user_wager: 0,
-            is_user_participating: true
-        }
-    ],
-
     // deposit
     depositPack: [
         { amount: 25, type: 'deposit' },
@@ -173,3 +154,25 @@ export const useContentStore = create((set, get) => ({
     server: 'https://starskick-back.vercel.app/api/',
     botRelayerLink: 'https://t.me/blackjack_relayer'
 }))
+
+export const useEventsStore = create((set) => ({
+    active: [],
+    resolved: [],
+    activeCount: 0,
+    resolvedCount: 0,
+
+    setEvents: (array) => {
+        if (!array || array.length === 0) return;
+
+        // Используем toUpperCase(), чтобы избежать ошибок регистра
+        const activeEvents = array.filter(e => e.status?.toUpperCase() !== 'RESOLVED');
+        const resolvedEvents = array.filter(e => e.status?.toUpperCase() === 'RESOLVED');
+
+        set({
+            active: activeEvents,
+            resolved: resolvedEvents,
+            activeCount: activeEvents.length,
+            resolvedCount: resolvedEvents.length
+        });
+    }
+}));
