@@ -10,7 +10,7 @@ import IconStar from '@/assets/icons/icon-star.svg?react'
 import Score from '@/components/utility/Score'
 
 export default function Withdraw() {
-    const { withdrawPack, withdrawFee, withdrawMin } = useContentStore()
+    const { withdrawPack, withdrawFee } = useContentStore()
     const { t } = useTranslation()
     const [amount, setAmount] = useState(0)
     const [selected, setSelected] = useState('')
@@ -31,17 +31,13 @@ export default function Withdraw() {
     const wallet = queryClient.getQueryData(['wallet'])
 
     useEffect(() => {
-        if (wallet) setAbleToWith(wallet.withdrawable_balance >= amount)
+        if (wallet) setAbleToWith(wallet.withdrawable_balance >= amount && amount > 0)
     }, [amount, wallet])
 
     return (
         <div id="withdraw">
             <span className='secondary-text'>{t('definition.withdraw')}</span>
             <div id='withdraw-info'>
-                <div className='withdraw-info-box'>
-                    <span className='secondary-text'>Fee</span>
-                    <Score value={withdrawFee + '%'} />
-                </div>
                 <div className='withdraw-info-box'>
                     <span className='secondary-text'>Available</span>
                     <Score value={wallet?.withdrawable_balance} icon={<IconStar width={18} height={18} />} />
@@ -60,7 +56,7 @@ export default function Withdraw() {
             </div>
             <div className='flex flex-col gap-[10px]'>
                 <button className='button-main b-b' style={{ width: '100%' }} disabled={!ableToWith}>
-                    <span className="white-text">{ableToWith ? t('button.withdraw') : 'You cannot withdraw this amount'}</span>
+                    <span className="white-text">{ableToWith ? t('button.withdraw') : t('warning.youcannotwithdraw')}</span>
                     {ableToWith && <Score value={amount} color={'white'} icon={<IconStar width={18} height={18} />} />}
                 </button>
                 <button className='button-secondary' style={{ width: '100%' }} onClick={handleClear}>
