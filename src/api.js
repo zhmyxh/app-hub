@@ -158,3 +158,8 @@ export const useEventsFromCache = (key) => {
         enabled: false,
     }).data
 }
+
+export const truncate = (str, limit = 20) => {
+    if (!str) return ''
+    return str.length > limit ? str.substring(0, limit) + '...' : str
+}

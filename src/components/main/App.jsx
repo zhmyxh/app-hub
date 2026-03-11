@@ -15,7 +15,6 @@ const ProfilePage = lazy(() => import("../pages/Profile/ProfileComponent.jsx"))
 const Deposit = lazy(() => import("../modal/D&W/DepositComponent.jsx"))
 const Withdraw = lazy(() => import("../modal/D&W/WithdrawComponent.jsx"))
 const Rules = lazy(() => import("../modal/Rules/RulesComponents.jsx"))
-const Wager = lazy(() => import("../modal/Wager/WagerComponent.jsx"))
 
 import { useContentStore, useSettingsStore, useUserStore } from "../../store/useStore"
 
@@ -24,6 +23,7 @@ import Panel from "../utility/Panel"
 import Navigation from "../utility/Navigation"
 import Modal from "../utility/Modal/ModalComponent.jsx"
 import PageLoader from "../utility/PageLoader"
+import Wager from "../modal/Wager/WagerComponent.jsx"
 
 export default function App() {
     const { theme, changeTheme, currentPage, setPage, modalStatus, modalType, lang } = useSettingsStore()
