@@ -4,7 +4,7 @@ import { act, useEffect, useRef, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { Trans, useTranslation } from "react-i18next"
 
-import { httpGet, httpPost, utcFormat } from "@/api"
+import { httpGet, httpPost, utcFormat, getTimeLeft } from "@/api"
 
 import { useContentStore, useSettingsStore, useUserStore } from "@/store/useStore"
 
@@ -24,6 +24,9 @@ import IconProfile from '@/assets/icons/icon-profile.svg?react'
 import IconAlterStar from '@/assets/icons/icon-alter-star.svg?react'
 import IconWin from '@/assets/icons/play-icons/icon-win.svg?react'
 import IconLose from '@/assets/icons/play-icons/icon-lose.svg?react'
+import IconLock from '@/assets/icons/icon-lock.svg?react'
+import { Loader } from '../../utility/Loader/LoaderComponent'
+import { truncate } from '../../../api'
 
 function WagerTitle({ event, handleStep, setCurrentOption }) {
     const { wagerWarning, cancelWagerWarning } = useUserStore()
@@ -54,6 +57,15 @@ function WagerTitle({ event, handleStep, setCurrentOption }) {
 
     const YesNoQuestion = event?.options?.find(option => option.name.includes('Yes') || option.name.includes('Да')) || false
 
+    const WagerDate = ({ fun }) => {
+        return (
+            <div className='flex items-center gap-[5px]'>
+                <IconCalendar className={'icon-default'} width={15} height={15} />
+                <span className='secondary-text'>{fun(event.closes_at)}</span>
+            </div>
+        )
+    }
+
     return (
         <div id="wager-title">
             {event ? (
@@ -66,46 +78,65 @@ function WagerTitle({ event, handleStep, setCurrentOption }) {
                         )}
                         <div id='event-info'>
                             <span className='header-text'>{event.question}</span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                                <IconCalendar className={'icon-default'} width={15} height={15} />
-                                <span className='secondary-text'>{utcFormat(event.closes_at)}</span>
+
+                            {event.status === 'OPEN' ? (
+                                <WagerDate fun={getTimeLeft} />
+                            ) : (
+                                <div className='flex flex-col gap-[10px]'>
+                                    <WagerDate fun={utcFormat} />
+                                    <Score value={t('header.closed')} icon={<IconLock className={'icon-default'} width={16} height={16} />} filled={true} size={14} />
+                                </div>
+                            )}
+
+                        </div>
+                    </div>
+                    {event.status === 'OPEN' && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            <span className="secondary-text">{t('header.placeabet')}</span>
+                            <WagerWarning />
+                            <div id="event-actions">
+                                {event?.options && event.options.map((option, i) => {
+                                    let buttonColor = null
+                                    if (YesNoQuestion) {
+                                        buttonColor = (i === 0 ? 'b-g' : 'b-r')
+                                    } else buttonColor = 'b-b'
+
+                                    return <Button name={option.name}
+                                        type={'main'}
+                                        color={buttonColor} wd={true}
+                                        action={() => selectOption(option)}
+                                        image={option.image_payload}
+                                        key={i} />
+                                })}
                             </div>
                         </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        <span className="secondary-text">{t('header.placeabet')}</span>
-                        <WagerWarning />
-                        <div id="event-actions">
-                            {event?.options && event.options.map((option, i) => {
-                                let buttonColor = null
-                                if (YesNoQuestion) {
-                                    buttonColor = (i === 0 ? 'b-g' : 'b-r')
-                                } else buttonColor = 'b-b'
-
-                                return <Button name={option.name}
-                                    type={'main'}
-                                    color={buttonColor} wd={true}
-                                    action={() => selectOption(option)}
-                                    image={option.image_payload} />
-                            })}
-                        </div>
-                    </div>
+                    )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         <span className="secondary-text">{t('header.stats')}</span>
                         <div className='event-options'>
-                            {event?.options && event.options.map((option, i) => (
-                                <div className='event-option' key={i}>
-                                    <span className='secondary-text'>«{option.name}»</span>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'end', gap: 6 }}>
-                                        <div className='event-option-total'>
-                                            <span className='header-text' style={{ fontSize: 16 }}>{option.percent}%</span>
-                                        </div>
-                                        <div className='event-option-total'>
-                                            <Score value={option.option_pool} icon={<IconStar width={18} height={18} />} />
+                            {event?.options && event.options.map((option, i) => {
+                                let name = ''
+
+                                if (option.name === 'Yes' || option.name === 'No') {
+                                    name = t('option.' + option.name.toLowerCase())
+                                } else {
+                                    name = truncate(option.name)
+                                }
+
+                                return (
+                                    <div className='event-option' key={i}>
+                                        <span className='secondary-text'>«{name}»</span>
+                                        <div className='flex flex-col gap-[6px] items-end'>
+                                            <div className='event-option-total'>
+                                                <span className='header-text'>{option.percent}%</span>
+                                            </div>
+                                            <div className='event-option-total'>
+                                                <Score value={option.option_pool} icon={<IconStar width={18} height={18} />} />
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                         <div id="event-stats">
                             <div className="event-stat-box">
@@ -119,7 +150,7 @@ function WagerTitle({ event, handleStep, setCurrentOption }) {
                         </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                        {event.is_user_participating && (
+                        {event.does_user_participate && (
                             <div id="event-user-info">
                                 <div id="event-user-participating">
                                     <IconProfile className='icon-default' width={20} height={20} />
@@ -137,14 +168,14 @@ function WagerTitle({ event, handleStep, setCurrentOption }) {
                                     <table>
                                         <tr>
                                             {event?.options && event.options.map((option, i) => (
-                                                <th>«{t('option.' + option.name)}»</th>
+                                                <th>«{option.name}»</th>
                                             ))}
                                         </tr>
                                         <tr>
                                             {event?.options && event.options.map((option, i) => (
                                                 <td>
                                                     <div className="cell-content">
-                                                        <Score value={option.user_wager} icon={<IconStar width={18} height={18} />} />
+                                                        <Score value={option.user_wager || 0} icon={<IconStar width={18} height={18} />} />
                                                     </div>
                                                 </td>
                                             ))}
@@ -160,7 +191,7 @@ function WagerTitle({ event, handleStep, setCurrentOption }) {
     )
 }
 
-function WagerBuy({ currentOption, event, setPaymentStatus, handleStep }) {
+function WagerBuy({ currentOption, event, setPaymentStatus, handleStep, setUpdatedEvent, currentEvent }) {
     const { t } = useTranslation()
     const { server } = useContentStore()
 
@@ -173,7 +204,7 @@ function WagerBuy({ currentOption, event, setPaymentStatus, handleStep }) {
     const handleAmount = (action) => {
         if ((amount > 0 && amount < maxAmount) || amount === 0) {
             if (action === 'add') setAmount(prev => prev + 5)
-            if (action === 'reduce') setAmount(prev => prev - 5)
+            if (action === 'reduce' && amount > 4) setAmount(prev => prev - 5)
         }
 
         if (typeof action === 'number') setAmount(action)
@@ -188,6 +219,49 @@ function WagerBuy({ currentOption, event, setPaymentStatus, handleStep }) {
             inputRef.current.value = amount
         }
     }, [amount])
+
+    useEffect(() => {
+        let newOption = null
+        let otherOption = null
+
+        for (const option of currentEvent.options) {
+            if (option.option_id === currentOption.option_id) {
+                newOption = { ...option }
+            } else {
+                otherOption = { ...option }
+            }
+        }
+
+        function percent(options) {
+            const totalPool = options.reduce((sum, opt) => sum + opt.option_pool, 0)
+
+            if (totalPool === 0) {
+                return options.map(opt => ({
+                    ...opt,
+                    percent: 0
+                }))
+            }
+
+            return options.map(opt => ({
+                ...opt,
+                percent: Math.round((opt.option_pool / totalPool) * 100)
+            }))
+        }
+
+        newOption.option_pool = currentOption.option_pool + amount
+        newOption.user_wager = currentOption.user_wager + amount
+
+        let updated = [newOption, otherOption]
+        updated.sort((a, b) => a.option_id - b.option_id)
+
+        const newUpdated = percent(updated)
+
+        setUpdatedEvent({
+            ...currentEvent,
+            total_pool: (currentEvent.total_pool + amount),
+            options: newUpdated
+        })
+    }, [amount, currentEvent])
 
     const fetchPlaceWager = async () => {
         return await httpPost(server + 'market-wagers/wagers', {
@@ -252,6 +326,12 @@ function WagerBuy({ currentOption, event, setPaymentStatus, handleStep }) {
 function WagerSuccess() {
     const { t } = useTranslation()
 
+    const queryClient = useQueryClient()
+
+    useEffect(() => {
+        queryClient.invalidateQueries({ queryKey: ['balance'] })
+    }, [queryClient])
+
     return (
         <div className="flex flex-col items-center gap-[25px]">
             <IconWin width={50} height={50} />
@@ -281,6 +361,7 @@ export default function Wager() {
     const { modalIndex } = useSettingsStore()
     const { t } = useTranslation()
     const { server } = useContentStore()
+    const { lang } = useSettingsStore()
 
     const [step, setStep] = useState(1)
     const [currentOption, setCurrentOption] = useState({})
@@ -289,13 +370,15 @@ export default function Wager() {
     const steps = ['definition.wagerstep.1', 'definition.wagerstep.2']
 
     const [refresh, setRefresh] = useState(false)
+
+    const [updatedEvent, setUpdatedEvent] = useState(null)
     const [currentEvent, setCurrentEvent] = useState(null)
     const [isLoadingEvent, setIsLoadingEvent] = useState(false)
 
     const queryClient = useQueryClient()
 
     const fetchEvent = async () => {
-        return await httpGet(server + 'market-wagers/events/' + modalIndex)
+        return await httpGet(`${server}market-wagers/events/${modalIndex}?app_lang=${lang}`)
     }
 
     useEffect(() => {
@@ -305,30 +388,49 @@ export default function Wager() {
             setIsLoadingEvent(true)
 
             try {
-                const eventsQueries = queryClient.getQueriesData({ queryKey: ['events'] })
+                const allQueriesData = queryClient.getQueriesData({
+                    queryKey: ['events'],
+                    exact: false
+                })
 
-                const events = eventsQueries.flatMap(q => q[1]?.events || [])
-                const event = events.find(e => e.event_id === Number(modalIndex))
+                const currentLangEvents = allQueriesData
+                    .filter(query => query[0].includes(lang))
+                    .flatMap(query => query[1]?.events || [])
 
-                if (event) {
-                    const data = await fetchEvent()
+                const eventFromCache = currentLangEvents.find(e => e.event_id === Number(modalIndex))
+
+                if (eventFromCache) {
+                    const freshData = await fetchEvent()
 
                     setCurrentEvent({
-                        ...event,
-                        options: (event.options || []).map((opt, i) => ({
+                        ...eventFromCache,
+                        ...freshData,
+                        options: (eventFromCache.options || []).map((opt, i) => ({
                             ...opt,
-                            ...(data.options?.[i] || {})
+                            ...(freshData.options?.[i] || {})
                         }))
                     })
                 }
+            } catch (error) {
+                console.error('Error updating event:', error)
             } finally {
                 setIsLoadingEvent(false)
-                if (refresh) setRefresh(false)
             }
         }
 
         load()
-    }, [modalIndex, refresh, queryClient])
+    }, [modalIndex, queryClient, lang])
+
+    useEffect(() => {
+        setUpdatedEvent(currentEvent)
+    }, [currentEvent])
+
+    useEffect(() => {
+        if (refresh === true) {
+            setCurrentEvent(updatedEvent)
+            setRefresh(false)
+        }
+    }, [refresh])
 
     const handleStep = (dir) => {
         if (dir === 'back' && step > 1) setStep(prev => prev - 1)
@@ -339,7 +441,7 @@ export default function Wager() {
         <div id="wager">
             {
                 isLoadingEvent
-                    ? <div className="loader"></div>
+                    ? <Loader text={t('loader.event')} />
                     : (() => {
                         return (
                             <>
@@ -350,19 +452,18 @@ export default function Wager() {
                                 {step === 2 && <WagerBuy
                                     event={currentEvent}
                                     handleStep={handleStep} currentOption={currentOption}
-                                    setPaymentStatus={setPaymentStatus} />}
+                                    setPaymentStatus={setPaymentStatus}
+                                    setUpdatedEvent={setUpdatedEvent} currentEvent={currentEvent} />}
                                 {step === 3 && (
                                     <div id="wager-status">
                                         {paymentStatus === 'success' && <WagerSuccess />}
                                         {paymentStatus === 'failed' && <WagerFailed />}
-                                        {paymentStatus === 'loading' && <div className="loader"></div>}
+                                        {paymentStatus === 'loading' && <Loader text={t('loader.payment')} />}
                                         {paymentStatus !== 'loading' &&
                                             <Button name={t('button.back')} type={'main'} color='b-b' wd={true}
                                                 action={() => {
                                                     setRefresh(true)
-                                                    setTimeout(() => {
-                                                        setStep(1)
-                                                    }, 100)
+                                                    setStep(1)
                                                 }} />
                                         }
                                     </div>

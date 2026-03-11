@@ -162,17 +162,22 @@ export const useEventsStore = create((set) => ({
     resolvedCount: 0,
 
     setEvents: (array) => {
-        if (!array || array.length === 0) return;
+        if (!array || array.length === 0) return
 
-        // Используем toUpperCase(), чтобы избежать ошибок регистра
-        const activeEvents = array.filter(e => e.status?.toUpperCase() !== 'RESOLVED');
-        const resolvedEvents = array.filter(e => e.status?.toUpperCase() === 'RESOLVED');
+        const activeEvents = array.filter(e => e.status?.toUpperCase() !== 'RESOLVED')
+        const resolvedEvents = array.filter(e => e.status?.toUpperCase() === 'RESOLVED')
 
         set({
             active: activeEvents,
             resolved: resolvedEvents,
             activeCount: activeEvents.length,
             resolvedCount: resolvedEvents.length
-        });
+        })
+    },
+
+    eventsRefreshSeconds: 0,
+    setRefreshSeconds: (value) => {
+        if (value < 0) return
+        set({ eventsRefreshSeconds: value })
     }
-}));
+}))

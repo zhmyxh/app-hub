@@ -10,15 +10,16 @@ import IconUsers from '@/assets/icons/icon-users.svg?react'
 import IconAlterStar from '@/assets/icons/icon-alter-star.svg?react'
 import IconCalendar from '@/assets/icons/icon-calendar.svg?react'
 import IconLock from '@/assets/icons/icon-lock.svg?react'
+import IconRefresh from '@/assets/icons/icon-refresh.svg?react'
 
 import Score from '@/components/utility/Score'
 import SmartImage from '@/components/utility/SmartImage'
 import NotFound from "@/components/utility/NotFound"
 
 import { httpGet, TTL, utcFormat } from '@/api'
-import { Loader } from '../../utility/Loader/LoaderComponent'
+import { Loader, LoaderMini } from '../../utility/Loader/LoaderComponent'
 import { useEventsStore } from '../../../store/useStore'
-import { useEventsFromCache } from '../../../api'
+import { truncate, useEventsFromCache } from '../../../api'
 
 function Event({ event }) {
     const { toggleModal } = useSettingsStore()
@@ -41,17 +42,26 @@ function Event({ event }) {
                 </div>
             </div>
             <div className='event-options'>
-                {event?.options && event.options.map((option, i) => (
-                    <div className='event-option' key={i}>
-                        {option.image_payload && <SmartImage src={option.image_payload} alt='Event icon' width={50} height={50} />}
-                        <span className='secondary-text'>«{option.name}»</span>
-                        <div className='flex flex-col gap-[6px] items-end'>
-                            <div className='event-option-total'>
-                                <span className='header-text'>{option.percent}%</span>
+                {event?.options && event.options.map((option, i) => {
+                    let name = ''
+
+                    if (option.name === 'Yes' || option.name === 'No') {
+                        name = t('option.' + option.name.toLowerCase())
+                    } else {
+                        name = truncate(option.name)
+                    }
+
+                    return (
+                        <div className='event-option' key={i}>
+                            <span className='secondary-text'>«{name}»</span>
+                            <div className='flex flex-col gap-[6px] items-end'>
+                                <div className='event-option-total'>
+                                    <span className='header-text'>{option.percent}%</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
             <div id='event-pool'>
                 <Score value={event.total_pool} icon={<IconAlterStar className='icon-default' width={16} height={16} />} filled={true} size={14} />
@@ -82,8 +92,10 @@ const useLoadAllEvents = (lang, server) => {
             return {
                 allEvents: [...active, ...resolved],
                 isLoading: results.some(r => r.isLoading),
+                isFetching: results.some(r => r.isFetching),
                 isSuccess: results.every(r => r.isSuccess),
-            }
+                refetchAll: () => results.forEach(r => r.refetch())
+            };
         },
     })
 }
@@ -93,33 +105,60 @@ export default function EventsPage() {
     const { server } = useContentStore()
     const [filter, setFilter] = useState('active')
     const { lang } = useSettingsStore()
-    const { setEvents, active, resolved, activeCount, resolvedCount } = useEventsStore()
+    const { setEvents, active, resolved, activeCount, resolvedCount, eventsRefreshSeconds, setRefreshSeconds } = useEventsStore()
 
-    const { allEvents, isLoading, isSuccess } = useLoadAllEvents(lang, server)
+    const COOLDOWN_SEC = 10
+    const [secondsLeft, setSecondsLeft] = useState(0)
+    const canRefresh = eventsRefreshSeconds === 0
+
+    const { allEvents, isSuccess, isFetching, isLoading } = useLoadAllEvents(lang, server)
 
     useEffect(() => {
-        if (isSuccess && allEvents.length > 0) {
-            setEvents(allEvents)
+        if (isSuccess && !isFetching && allEvents.length > 0) {
+            setEvents([...allEvents])
         }
-    }, [isSuccess, allEvents, setEvents])
+    }, [allEvents, isSuccess, isFetching, lang, setEvents])
+
+    useEffect(() => {
+        if (eventsRefreshSeconds <= 0) return
+
+        const timer = setInterval(() => {
+            setRefreshSeconds(eventsRefreshSeconds - 1)
+        }, 1000)
+
+        return () => clearInterval(timer)
+    }, [eventsRefreshSeconds])
+
+    const handleRefresh = () => {
+        if (canRefresh && !isFetching) {
+            setRefreshSeconds(COOLDOWN_SEC)
+            refetchAll()
+        }
+    }
 
     return (
         <div id='events' className='app-page'>
             <div id='event-filters'>
-                <button className='button-alter'
-                    style={{ opacity: filter === 'active' ? 1 : 0.6 }}
-                    onClick={() => setFilter('active')}>
-                    <span className='secondary-text'>{t('filter.active')} ({activeCount})</span>
-                </button>
-                <button className='button-alter'
-                    style={{ opacity: filter === 'resolved' ? 1 : 0.6 }}
-                    onClick={() => setFilter('resolved')}>
-                    <span className='secondary-text'>{t('filter.resolved')} ({resolvedCount})</span>
+                <div className='flex items-center gap-[10px]'>
+                    <button className='button-alter'
+                        style={{ opacity: filter === 'active' ? 1 : 0.6, minWidth: 90 }}
+                        onClick={() => { if (isSuccess) setFilter('active') }}>
+                        {isLoading ? <LoaderMini /> : <span className='secondary-text'>{t('filter.active')} ({activeCount})</span>}
+                    </button>
+                    <button className='button-alter'
+                        style={{ opacity: filter === 'resolved' ? 1 : 0.6, minWidth: 90 }}
+                        onClick={() => { if (isSuccess) setFilter('resolved') }}>
+                        {isLoading ? <LoaderMini /> : <span className='secondary-text'>{t('filter.resolved')}</span>}
+                    </button>
+                </div>
+                <button className='button-alter' onClick={handleRefresh} disabled={!canRefresh || isFetching} style={{ width: eventsRefreshSeconds !== 0 ? 90 : 'auto' }}>
+                    <IconRefresh className='icon-default' width={18} height={18} />
+                    {eventsRefreshSeconds !== 0 && <span className='secondary-text'>{eventsRefreshSeconds}{t('status.sec')}</span>}
                 </button>
             </div>
             <div id='events-list'>
                 {
-                    isLoading
+                    isLoading || isFetching
                         ? <Loader text={t('loader.events')} />
                         : allEvents?.length
                             ? (<>
