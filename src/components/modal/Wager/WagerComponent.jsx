@@ -191,7 +191,7 @@ function WagerTitle({ event, handleStep, setCurrentOption }) {
     )
 }
 
-function WagerBuy({ currentOption, event, setPaymentStatus, handleStep, setUpdatedEvent, currentEvent }) {
+function WagerBuy({ currentOption, event, setPaymentStatus, handleStep, setUpdatedEvent, setReceipt }) {
     const { t } = useTranslation()
     const { server } = useContentStore()
 
@@ -220,48 +220,7 @@ function WagerBuy({ currentOption, event, setPaymentStatus, handleStep, setUpdat
         }
     }, [amount])
 
-    useEffect(() => {
-        let newOption = null
-        let otherOption = null
-
-        for (const option of currentEvent.options) {
-            if (option.option_id === currentOption.option_id) {
-                newOption = { ...option }
-            } else {
-                otherOption = { ...option }
-            }
-        }
-
-        function percent(options) {
-            const totalPool = options.reduce((sum, opt) => sum + opt.option_pool, 0)
-
-            if (totalPool === 0) {
-                return options.map(opt => ({
-                    ...opt,
-                    percent: 0
-                }))
-            }
-
-            return options.map(opt => ({
-                ...opt,
-                percent: Math.round((opt.option_pool / totalPool) * 100)
-            }))
-        }
-
-        newOption.option_pool = currentOption.option_pool + amount
-        newOption.user_wager = currentOption.user_wager + amount
-
-        let updated = [newOption, otherOption]
-        updated.sort((a, b) => a.option_id - b.option_id)
-
-        const newUpdated = percent(updated)
-
-        setUpdatedEvent({
-            ...currentEvent,
-            total_pool: (currentEvent.total_pool + amount),
-            options: newUpdated
-        })
-    }, [amount, currentEvent])
+    const queryClient = useQueryClient()
 
     const fetchPlaceWager = async () => {
         return await httpPost(server + 'market-wagers/wagers', {
@@ -271,11 +230,39 @@ function WagerBuy({ currentOption, event, setPaymentStatus, handleStep, setUpdat
         })
     }
 
-    const { mutate, data, isLoading, error } = useMutation({
+    const { mutate, isLoading } = useMutation({
         mutationFn: fetchPlaceWager,
         onMutate: () => setPaymentStatus('loading'),
-        onSuccess: () => setPaymentStatus('success'),
-        onError: () => setPaymentStatus('failed')
+        onSuccess: (responseData) => {
+            if (responseData.wallet_balance) {
+                const balance = { total_balance: responseData.wallet_balance.total_balance }
+                const wallet = responseData.wallet_balance
+                const updatedEvent = responseData
+
+                setUpdatedEvent(prev => ({
+                    ...prev,
+                    total_pool: updatedEvent.total_pool,
+                    total_participants: updatedEvent.total_participants,
+                    options: prev.options.map(oldOption => {
+                        const freshData = updatedEvent.options.find(newOpt => newOpt.option_id === oldOption.option_id)
+                        return freshData ? { ...oldOption, ...freshData } : oldOption
+                    })
+                }))
+
+                queryClient.setQueryData(['balance'], balance)
+                queryClient.setQueryData(['wallet'], wallet)
+
+                setReceipt({
+                    amount: amount,
+                    balance: balance.total_balance,
+                    option: currentOption.name
+                })
+            }
+            setPaymentStatus('success')
+        },
+        onError: (err) => {
+            setPaymentStatus('failed')
+        }
     })
 
     const placeWager = () => {
@@ -323,28 +310,28 @@ function WagerBuy({ currentOption, event, setPaymentStatus, handleStep, setUpdat
     )
 }
 
-function WagerSuccess() {
+function WagerSuccess({ receipt }) {
     const { t } = useTranslation()
-
-    const queryClient = useQueryClient()
-
-    useEffect(() => {
-        queryClient.invalidateQueries({ queryKey: ['balance'] })
-        queryClient.invalidateQueries({ queryKey: ['wallet'] })
-    }, [queryClient])
 
     return (
         <div className="flex flex-col items-center gap-[25px]">
             <IconWin width={50} height={50} />
             <div className="flex flex-col gap-[5px] items-center">
-                <span className="secondary-text">{t('header.paymentstatus')}</span>
-                <span className="header-text">{t('header.success')}</span>
+                <div className='flex flex-col gap-[5px] items-center'>
+                    <span className="secondary-text">{t('header.paymentstatus')}</span>
+                    <span className="header-text">{t('header.success')}</span>
+                </div>
+                <div className='flex flex-col gap-[5px] my-[20px] items-center'>
+                    <Score value={receipt.amount} icon={<IconStar width={18} height={18} />} filled={true} />
+                    <span className="secondary-text">{t('header.balance')}: <b>{receipt.balance}</b></span>
+                    <span className="secondary-text">{t('header.option')}: <b>«{(receipt.option === 'Yes' || receipt.option === 'No') ? t(receipt.option) : receipt.option}»</b></span>
+                </div>
             </div>
         </div>
     )
 }
 
-function WagerFailed() {
+function WagerFailed({ receipt }) {
     const { t } = useTranslation()
 
     return (
@@ -375,6 +362,8 @@ export default function Wager() {
     const [updatedEvent, setUpdatedEvent] = useState(null)
     const [currentEvent, setCurrentEvent] = useState(null)
     const [isLoadingEvent, setIsLoadingEvent] = useState(false)
+
+    const [receipt, setReceipt] = useState(null)
 
     const queryClient = useQueryClient()
 
@@ -454,11 +443,13 @@ export default function Wager() {
                                     event={currentEvent}
                                     handleStep={handleStep} currentOption={currentOption}
                                     setPaymentStatus={setPaymentStatus}
-                                    setUpdatedEvent={setUpdatedEvent} currentEvent={currentEvent} />}
+                                    setUpdatedEvent={setUpdatedEvent}
+                                    setReceipt={setReceipt}
+                                    currentEvent={currentEvent} />}
                                 {step === 3 && (
                                     <div id="wager-status">
-                                        {paymentStatus === 'success' && <WagerSuccess />}
-                                        {paymentStatus === 'failed' && <WagerFailed />}
+                                        {paymentStatus === 'success' && <WagerSuccess receipt={receipt} />}
+                                        {paymentStatus === 'failed' && <WagerFailed receipt={receipt} />}
                                         {paymentStatus === 'loading' && <Loader text={t('loader.payment')} />}
                                         {paymentStatus !== 'loading' &&
                                             <Button name={t('button.back')} type={'main'} color='b-b' wd={true}
