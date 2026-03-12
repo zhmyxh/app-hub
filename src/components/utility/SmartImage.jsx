@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { LoaderMini } from "./Loader/LoaderComponent"
 
 function SmartImage({
     src,
@@ -29,7 +30,7 @@ function SmartImage({
         <div style={{ position: "relative", display: "flex", justifyContent: 'center', alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
             {!loaded && !error && (
                 loader || (
-                    <div className="loader-2" />
+                    <LoaderMini />
                 )
             )}
 

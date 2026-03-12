@@ -1,7 +1,9 @@
+import { Loader } from "./Loader/LoaderComponent"
+
 function PageLoader() {
     return (
         <div id="page-loader">
-            <div className="loader" />
+            <Loader />
         </div>
     )
 }

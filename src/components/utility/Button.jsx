@@ -16,7 +16,7 @@ function Button({ name, icon, color, type, action, wd, size, image }) {
     return (
         <button
             className={`button-${type} ${color ? color : ''} ${image ? 'flex-col' : ''}`}
-            style={{ width: wd ? '100%' : 'fit-content', height: image ? 120 : '' }}
+            style={{ width: wd ? '100%' : 'fit-content', height: image ? 'auto' : '', paddingBlock: image ? 15 : 0 }}
             onClick={action}>
             {icon && icon}
             {name && <span className={textClass} style={{ fontSize: size ? size : 16 }}>{name}</span>}

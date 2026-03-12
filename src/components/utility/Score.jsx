@@ -1,4 +1,5 @@
 import IconStar from '../../assets/icons/icon-star.svg?react'
+import { LoaderMini } from './Loader/LoaderComponent'
 
 function Score({ value, filled, color, icon, size }) {
     return (
@@ -6,9 +7,11 @@ function Score({ value, filled, color, icon, size }) {
             {icon && icon}
             {(value !== null && value !== undefined) ? (
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span className={color === 'white' ? 'white-text' : 'default-text'} style={{ fontWeight: 700, fontSize: size ? size : 16 }}>{value}</span>
+                    <span className={color === 'white' ? 'white-text' : 'default-text'} style={{ fontWeight: 700, fontSize: size ? size : 16 }}>
+                        {value}
+                    </span>
                 </div>
-            ) : <div className='loader-2'></div>}
+            ) : <LoaderMini />}
         </div>
     )
 }
