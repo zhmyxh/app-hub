@@ -24,9 +24,10 @@ import IconProfile from '@/assets/icons/icon-profile.svg?react'
 import IconAlterStar from '@/assets/icons/icon-alter-star.svg?react'
 import IconWin from '@/assets/icons/play-icons/icon-win.svg?react'
 import IconLose from '@/assets/icons/play-icons/icon-lose.svg?react'
-import IconLock from '@/assets/icons/icon-lock.svg?react'
+
 import { Loader } from '../../utility/Loader/LoaderComponent'
-import { truncate } from '../../../api'
+import { truncate } from '@/api'
+import { EventStatus } from '../../pages/Events/EventsComponent'
 
 function WagerTitle({ event, handleStep, setCurrentOption }) {
     const { wagerWarning, cancelWagerWarning } = useUserStore()
@@ -84,7 +85,7 @@ function WagerTitle({ event, handleStep, setCurrentOption }) {
                             ) : (
                                 <div className='flex flex-col gap-[10px]'>
                                     <WagerDate fun={utcFormat} />
-                                    <Score value={t('header.closed')} icon={<IconLock className={'icon-default'} width={16} height={16} />} filled={true} size={14} />
+                                    <EventStatus event={event} />
                                 </div>
                             )}
 
@@ -323,8 +324,8 @@ function WagerSuccess({ receipt }) {
                 </div>
                 <div className='flex flex-col gap-[5px] my-[20px] items-center'>
                     <Score value={receipt.amount} icon={<IconStar width={18} height={18} />} filled={true} />
-                    <span className="secondary-text">{t('header.balance')}: <b>{receipt.balance}</b></span>
-                    <span className="secondary-text">{t('header.option')}: <b>«{(receipt.option === 'Yes' || receipt.option === 'No') ? t(receipt.option) : receipt.option}»</b></span>
+                    <span className="secondary-text mt-[5px]">{t('header.balance')}: <b>{receipt.balance}</b></span>
+                    <span className="secondary-text"><b>«{(receipt.option === 'Yes' || receipt.option === 'No') ? t(receipt.option) : receipt.option}»</b></span>
                 </div>
             </div>
         </div>

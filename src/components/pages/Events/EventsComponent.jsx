@@ -9,8 +9,11 @@ import { useContentStore, useSettingsStore } from '@/store/useStore'
 import IconUsers from '@/assets/icons/icon-users.svg?react'
 import IconAlterStar from '@/assets/icons/icon-alter-star.svg?react'
 import IconCalendar from '@/assets/icons/icon-calendar.svg?react'
-import IconLock from '@/assets/icons/icon-lock.svg?react'
 import IconRefresh from '@/assets/icons/icon-refresh.svg?react'
+
+import IconLock from '@/assets/icons/icon-lock.svg?react'
+import IconCancel from '@/assets/icons/event-icons/icon-cancel.svg?react'
+import IconResolved from '@/assets/icons/event-icons/icon-resolved.svg?react'
 
 import Score from '@/components/utility/Score'
 import SmartImage from '@/components/utility/SmartImage'
@@ -21,12 +24,41 @@ import { Loader, LoaderMini } from '../../utility/Loader/LoaderComponent'
 import { useEventsStore } from '../../../store/useStore'
 import { truncate, useEventsFromCache } from '../../../api'
 
-function Event({ event }) {
+export const EventStatus = ({ event }) => {
+    const { t } = useTranslation()
+
+    let statusIcon = null
+    let statusName = 'status.' + event.status.toLowerCase()
+
+    switch (event.status) {
+        case 'LOCKED':
+            statusIcon = <IconLock className={'icon-default'} width={16} height={16} />
+            break
+
+        case 'RESOLVED':
+            statusIcon = <IconResolved className={'icon-default'} width={16} height={16} />
+            break
+
+        case 'CANCELLED':
+            statusIcon = <IconCancel className={'icon-default'} width={16} height={16} />
+            break
+    }
+
+
+    return event.status !== 'OPEN' && <Score value={t(statusName)} icon={statusIcon} filled={true} size={14} />
+}
+
+export function Event({ event, disabled = false }) {
     const { toggleModal } = useSettingsStore()
     const { t } = useTranslation()
 
     return (
-        <div className='event-box box' onClick={() => toggleModal('wager', event.event_id)}>
+        <div className='event-box box' onClick={() => {
+            if (!disabled) {
+                toggleModal('wager', event.event_id)
+            }
+        }
+        }>
             <div style={{ display: 'flex', gap: 15 }}>
                 {event.image_payload && (
                     <div id='event-image'>
@@ -66,7 +98,7 @@ function Event({ event }) {
             <div id='event-pool'>
                 <Score value={event.total_pool} icon={<IconAlterStar className='icon-default' width={16} height={16} />} filled={true} size={14} />
                 <Score value={event.total_participants} icon={<IconUsers className='icon-default' width={16} height={16} />} filled={true} size={14} />
-                {event.status !== 'OPEN' && <Score value={t('header.closed')} icon={<IconLock className={'icon-default'} width={16} height={16} />} filled={true} size={14} />}
+                <EventStatus event={event} />
             </div>
         </div>
     )
@@ -111,7 +143,7 @@ export default function EventsPage() {
     const [secondsLeft, setSecondsLeft] = useState(0)
     const canRefresh = eventsRefreshSeconds === 0
 
-    const { allEvents, isSuccess, isFetching, isLoading } = useLoadAllEvents(lang, server)
+    const { allEvents, isSuccess, isFetching, isLoading, refetchAll } = useLoadAllEvents(lang, server)
 
     useEffect(() => {
         if (isSuccess && !isFetching && allEvents.length > 0) {
@@ -128,6 +160,8 @@ export default function EventsPage() {
 
         return () => clearInterval(timer)
     }, [eventsRefreshSeconds])
+
+    const queryClient = useQueryClient();
 
     const handleRefresh = () => {
         if (canRefresh && !isFetching) {
